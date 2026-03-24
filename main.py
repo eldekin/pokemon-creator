@@ -168,3 +168,7 @@ def estadisticas():
             "cantidad": max_val
         }
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app)
