@@ -18,6 +18,7 @@ DB_FILE = "data.dat"
 pokemons = cargar(DB_FILE)
 
 
+
 #Crear Pokémon
 @app.post("/pokemon")
 def crear_pokemon(nombre: str, numero: int, tipo: int, pc: int, nivel: int):
