@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokemon API Frontend</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .box {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        input {
+            margin: 5px;
+            padding: 5px;
+        }
+
+        button {
+            padding: 6px 10px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #222;
+            color: #0f0;
+            padding: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Pokemon API Frontend</h1>
+
+<div class="box">
+    <h3>Crear Pokemon</h3>
+    <input id="nombre" placeholder="Nombre">
+    <input id="numero" placeholder="Numero">
+    <input id="tipo" placeholder="Tipo">
+    <input id="pc" placeholder="PC">
+    <input id="nivel" placeholder="Nivel">
+    <br>
+    <button onclick="crearPokemon()">Crear</button>
+</div>
+
+<div class="box">
+    <h3>Acciones</h3>
+    <button onclick="listar()">Listar Pokemon</button>
+    <button onclick="verStats()">Ver Stats</button>
+</div>
+<div class="box">
+    <h3>Eliminar Pokemon</h3>
+    <input id="numeroEliminar" placeholder="Número">
+    <br>
+    <button onclick="eliminarPokemon()">Eliminar</button>
+</div>
+
+<div class="box">
+    <h3>Resultado</h3>
+    <pre id="resultado"></pre>
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+//Crear Pokémon
+function crearPokemon() {
+    const nombre = document.getElementById("nombre").value;
+    const numero = document.getElementById("numero").value;
+    const tipo = document.getElementById("tipo").value;
+    const pc = document.getElementById("pc").value;
+    const nivel = document.getElementById("nivel").value;
+
+    fetch(`${API}/pokemon?nombre=${nombre}&numero=${numero}&tipo=${tipo}&pc=${pc}&nivel=${nivel}`, {
+        method: "POST"
+    })
+    .then(res => res.json())
+    .then(data => {
+        mostrar(data);
+    });
+}
+
+//Listar Pokémon
+function listar() {
+    fetch(`${API}/pokemon`)
+    .then(res => res.json())
+    .then(data => {
+        mostrar(data);
+    });
+}
+
+//Ver estadísticas
+function verStats() {
+    fetch(`${API}/stats`)
+    .then(res => res.json())
+    .then(data => {
+        mostrar(data);
+    });
+}
+
+//Mostrar resultado con matrices
+function mostrar(data) {
+    const out = document.getElementById("resultado");
+
+    //Si es stats (tiene matriz)
+    if (data.matriz) {
+        let html = "<h4>Matriz (Tipo vs Nivel)</h4>";
+        html += "<table border='1' style='border-collapse: collapse;'>";
+
+        //encabezado
+        html += "<tr><th>Tipo/Nivel</th>";
+        for (let c = 0; c < data.matriz[0].length; c++) {
+            html += "<th>N" + (c+1) + "</th>";
+        }
+        html += "</tr>";
+
+        //filas
+        for (let f = 0; f < data.matriz.length; f++) {
+            html += "<tr>";
+            html += "<td><b>T" + (f+1) + "</b></td>";
+
+            for (let c = 0; c < data.matriz[f].length; c++) {
+                html += "<td style='text-align:center'>" + data.matriz[f][c] + "</td>";
+            }
+
+            html += "</tr>";
+        }
+
+        html += "</table>";
+
+        //totales por tipo
+        html += "<h4>Totales por Tipo</h4><ul>";
+        for (let i = 0; i < data.totales_por_tipo.length; i++) {
+            if (data.totales_por_tipo[i] > 0) {
+                html += "<li>Tipo " + (i+1) + ": " + data.totales_por_tipo[i] + "</li>";
+            }
+        }
+        html += "</ul>";
+
+        //totales por nivel
+        html += "<h4>Totales por Nivel</h4><ul>";
+        for (let i = 0; i < data.totales_por_nivel.length; i++) {
+            if (data.totales_por_nivel[i] > 0) {
+                html += "<li>Nivel " + (i+1) + ": " + data.totales_por_nivel[i] + "</li>";
+            }
+        }
+        html += "</ul>";
+
+        //máximo
+        html += "<h4>Máximo</h4>";
+        html += "Tipo " + data.maximo.tipo +
+                " - Nivel " + data.maximo.nivel +
+                " → Cantidad: " + data.maximo.cantidad;
+
+        out.innerHTML = html;
+    }
+    else {
+        out.textContent = JSON.stringify(data, null, 2);
+    }
+}
+function eliminarPokemon() {
+    const numero = document.getElementById("numeroEliminar").value;
+
+    fetch(`${API}/pokemon/${numero}`, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        mostrar(data);
+    });
+}
+</script>
+</body>
+</html>
